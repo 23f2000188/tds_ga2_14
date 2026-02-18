@@ -7,11 +7,12 @@ import os
 
 app = FastAPI()
 
-# Enable CORS for POST requests from any origin
+# IMPORTANT: enable CORS before any routes!
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_methods=["*"],
+    allow_credentials=True,
+    allow_methods=["*"], 
     allow_headers=["*"],
 )
 
