@@ -85,3 +85,6 @@ async def get_metrics(request: Request):
     response = JSONResponse(content=result)
     response.headers["Access-Control-Allow-Origin"] = "*"
     return response
+
+from mangum import Mangum
+handler = Mangum(app)
