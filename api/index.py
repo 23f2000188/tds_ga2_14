@@ -1,36 +1,48 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, Response, Request
 from pydantic import BaseModel
-import json
 import statistics
-import os
 
 app = FastAPI()
 
-# We are relying on vercel.json for CORS headers to avoid duplication/conflicts.
-# However, for local testing, we add a simple middleware or just leave it.
-# To be safe and compliant with the "vercel.json handles it" strategy, 
-# we won't add CORSMiddleware here.
-
-# --- DATA LOADING ---
-DATA = []
-try:
-    # Try looking in the same directory as this file (api/q-vercel-latency.json)
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    file_path = os.path.join(current_dir, "q-vercel-latency.json")
-    if os.path.exists(file_path):
-        with open(file_path, "r") as f:
-            DATA = json.load(f)
-    else:
-        # Fallback to root or other locations
-        # For Vercel, it often copies files to the root of the task
-        if os.path.exists("q-vercel-latency.json"):
-             with open("q-vercel-latency.json", "r") as f:
-                DATA = json.load(f)
-        elif os.path.exists("api/q-vercel-latency.json"):
-             with open("api/q-vercel-latency.json", "r") as f:
-                DATA = json.load(f)
-except Exception as e:
-    print(f"Warning: Could not load data: {e}")
+# HARDCODED DATA to prevent file loading errors
+DATA = [
+  {"region": "apac", "service": "payments", "latency_ms": 166.7, "uptime_pct": 98.528, "timestamp": 20250301},
+  {"region": "apac", "service": "recommendations", "latency_ms": 164.81, "uptime_pct": 97.866, "timestamp": 20250302},
+  {"region": "apac", "service": "analytics", "latency_ms": 154.76, "uptime_pct": 98.072, "timestamp": 20250303},
+  {"region": "apac", "service": "checkout", "latency_ms": 156.15, "uptime_pct": 97.362, "timestamp": 20250304},
+  {"region": "apac", "service": "analytics", "latency_ms": 131.08, "uptime_pct": 99.243, "timestamp": 20250305},
+  {"region": "apac", "service": "catalog", "latency_ms": 224.93, "uptime_pct": 97.186, "timestamp": 20250306},
+  {"region": "apac", "service": "catalog", "latency_ms": 142.86, "uptime_pct": 97.721, "timestamp": 20250307},
+  {"region": "apac", "service": "recommendations", "latency_ms": 185.92, "uptime_pct": 98.18, "timestamp": 20250308},
+  {"region": "apac", "service": "recommendations", "latency_ms": 206.88, "uptime_pct": 98.213, "timestamp": 20250309},
+  {"region": "apac", "service": "payments", "latency_ms": 160.23, "uptime_pct": 99.003, "timestamp": 20250310},
+  {"region": "apac", "service": "analytics", "latency_ms": 211.17, "uptime_pct": 98.973, "timestamp": 20250311},
+  {"region": "apac", "service": "payments", "latency_ms": 183.81, "uptime_pct": 98.791, "timestamp": 20250312},
+  {"region": "emea", "service": "support", "latency_ms": 159.89, "uptime_pct": 98.656, "timestamp": 20250301},
+  {"region": "emea", "service": "support", "latency_ms": 121.51, "uptime_pct": 99.426, "timestamp": 20250302},
+  {"region": "emea", "service": "support", "latency_ms": 210.08, "uptime_pct": 98.879, "timestamp": 20250303},
+  {"region": "emea", "service": "catalog", "latency_ms": 227.34, "uptime_pct": 98.998, "timestamp": 20250304},
+  {"region": "emea", "service": "payments", "latency_ms": 233.37, "uptime_pct": 97.975, "timestamp": 20250305},
+  {"region": "emea", "service": "payments", "latency_ms": 119.26, "uptime_pct": 99.45, "timestamp": 20250306},
+  {"region": "emea", "service": "analytics", "latency_ms": 202.75, "uptime_pct": 98.498, "timestamp": 20250307},
+  {"region": "emea", "service": "catalog", "latency_ms": 208.56, "uptime_pct": 98.176, "timestamp": 20250308},
+  {"region": "emea", "service": "payments", "latency_ms": 134.1, "uptime_pct": 99.196, "timestamp": 20250309},
+  {"region": "emea", "service": "catalog", "latency_ms": 182.67, "uptime_pct": 97.707, "timestamp": 20250310},
+  {"region": "emea", "service": "recommendations", "latency_ms": 127.35, "uptime_pct": 98.233, "timestamp": 20250311},
+  {"region": "emea", "service": "checkout", "latency_ms": 133.3, "uptime_pct": 97.343, "timestamp": 20250312},
+  {"region": "amer", "service": "support", "latency_ms": 215.34, "uptime_pct": 98.825, "timestamp": 20250301},
+  {"region": "amer", "service": "support", "latency_ms": 153.54, "uptime_pct": 98.331, "timestamp": 20250302},
+  {"region": "amer", "service": "catalog", "latency_ms": 144.12, "uptime_pct": 98.404, "timestamp": 20250303},
+  {"region": "amer", "service": "payments", "latency_ms": 124.43, "uptime_pct": 97.181, "timestamp": 20250304},
+  {"region": "amer", "service": "support", "latency_ms": 157.74, "uptime_pct": 98.437, "timestamp": 20250305},
+  {"region": "amer", "service": "analytics", "latency_ms": 136.94, "uptime_pct": 98.59, "timestamp": 20250306},
+  {"region": "amer", "service": "recommendations", "latency_ms": 209.87, "uptime_pct": 98.129, "timestamp": 20250307},
+  {"region": "amer", "service": "catalog", "latency_ms": 211.02, "uptime_pct": 97.99, "timestamp": 20250308},
+  {"region": "amer", "service": "payments", "latency_ms": 101.78, "uptime_pct": 99.399, "timestamp": 20250309},
+  {"region": "amer", "service": "payments", "latency_ms": 157.35, "uptime_pct": 97.822, "timestamp": 20250310},
+  {"region": "amer", "service": "analytics", "latency_ms": 119.75, "uptime_pct": 98.792, "timestamp": 20250311},
+  {"region": "amer", "service": "support", "latency_ms": 167.74, "uptime_pct": 98.097, "timestamp": 20250312}
+]
 
 class MetricsRequest(BaseModel):
     regions: list[str]
@@ -49,25 +61,41 @@ def calculate_p95(data):
     else:
         return data[idx]
 
+@app.middleware("http")
+async def cors_middleware(request: Request, call_next):
+    if request.method == "OPTIONS":
+        return Response(
+            status_code=200,
+            headers={
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "*",
+                "Access-Control-Allow-Headers": "*",
+            }
+        )
+    
+    try:
+        response = await call_next(request)
+    except Exception as e:
+        response = Response(content=str(e), status_code=500)
+        
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "*"
+    return response
+
 @app.post("/api/latency")
 async def get_metrics(payload: MetricsRequest):
     results = []
-    
-    # Ensure regions are unique but preserve order if possible or just set
     unique_regions = list(set(payload.regions))
     
     for region in unique_regions:
         region_data = [d for d in DATA if d.get("region") == region]
-        
         if not region_data:
             continue
             
         latencies = [d["latency_ms"] for d in region_data]
         uptimes = [d["uptime_pct"] for d in region_data]
         
-        if not latencies: 
-            continue
-
         avg_latency = statistics.mean(latencies)
         p95_latency = calculate_p95(latencies)
         avg_uptime = statistics.mean(uptimes)
@@ -82,8 +110,3 @@ async def get_metrics(payload: MetricsRequest):
         })
         
     return {"regions": results}
-
-# Explicit options handler just in case vercel passes it through
-@app.options("/api/latency")
-async def options_handler():
-    return {"message": "OK"}
