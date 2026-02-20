@@ -20,6 +20,10 @@
                 {
                     "key": "Access-Control-Allow-Headers",
                     "value": "*"
+                },
+                {
+                    "key": "Access-Control-Expose-Headers",
+                    "value": "*"
                 }
             ]
         }
